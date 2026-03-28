@@ -24,6 +24,7 @@ class _Base(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,
         populate_by_name=True,
+        serialize_by_alias=True,
     )
 
 
@@ -90,7 +91,7 @@ class FragmentCreatedEvent(_Base):
 class NotificationEvent(_Base):
     type: Literal["notification"] = "notification"
     kind: NotificationKind
-    message: str
+    content: str
 
 
 ServerEvent = Annotated[

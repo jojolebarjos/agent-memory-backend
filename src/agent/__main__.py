@@ -5,7 +5,7 @@ from typing import Never
 import click
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
-from websockets import ServerConnection, serve
+from websockets import ConnectionClosedOK, ServerConnection, serve
 
 from agent.agent.openai import OpenAIAgent
 from agent.controller import Controller, Role
@@ -55,9 +55,12 @@ async def handle(connection: ServerConnection, controller: Controller) -> None:
     else:
         user_id = "guest"
     role = Role(user_id=user_id)
-    async with asyncio.TaskGroup() as group:
-        group.create_task(incoming_loop(connection, controller, role))
-        group.create_task(outgoing_loop(connection, controller, role))
+    try:
+        async with asyncio.TaskGroup() as group:
+            group.create_task(incoming_loop(connection, controller, role))
+            group.create_task(outgoing_loop(connection, controller, role))
+    except* ConnectionClosedOK:
+        pass
 
 
 async def incoming_loop(connection: ServerConnection, controller: Controller, role: Role) -> Never:

@@ -10,6 +10,7 @@ from websockets import ConnectionClosedOK, ServerConnection, serve
 from agent.agent.openai import OpenAIAgent
 from agent.controller import Controller, Role
 from agent.protocol import client_command_adapter
+from agent.storage.in_memory import InMemoryStorage
 
 
 @click.command()
@@ -40,9 +41,10 @@ def main(host: str, port: int, verbose: bool) -> None:
 
 
 async def run(host: str, port: int) -> None:
+    storage = InMemoryStorage()
     client = AsyncOpenAI()
     agent = OpenAIAgent(client, model="gpt-4.1-nano")
-    controller = Controller(agent)
+    controller = Controller(storage, agent)
     async with serve(partial(handle, controller=controller), host, port) as _:
         await asyncio.Future()
 

@@ -5,16 +5,9 @@ from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, TypeAdapter
 from pydantic.alias_generators import to_camel
 
 
-class FragmentKind(StrEnum):
-    TEXT = "text"
-    STRUCTURED = "structured"
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    CALL = "call"
-
-
-class NotificationKind(StrEnum):
+class Kind(StrEnum):
+    NORMAL = "normal"
+    SUCCESS = "success"
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -59,7 +52,7 @@ class Fragment(_Base):
     created_at: AwareDatetime
     message_id: str
     parent_id: str | None = None
-    kind: FragmentKind
+    kind: Kind
     content: str
 
 
@@ -90,7 +83,7 @@ class FragmentCreatedEvent(_Base):
 
 class NotificationEvent(_Base):
     type: Literal["notification"] = "notification"
-    kind: NotificationKind
+    kind: Kind
     content: str
 
 

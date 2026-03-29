@@ -4,6 +4,7 @@ from collections.abc import AsyncIterator
 from pydantic import BaseModel
 
 from agent.agent import Agent
+from agent.context import Context
 from agent.utility import make_id, make_timestamp
 
 from .protocol import (
@@ -15,10 +16,11 @@ from .protocol import (
     DocumentCreatedEvent,
     Fragment,
     FragmentCreatedEvent,
-    FragmentKind,
+    Kind,
     Message,
     MessageCreateCommand,
     MessageCreatedEvent,
+    NotificationEvent,
     ServerEvent,
     WorkspaceSyncEvent,
 )
@@ -40,6 +42,12 @@ class Controller:
         self.conversations = dict[str, Conversation]()
         self.messages = dict[str, Message]()
         self.fragments = dict[str, Fragment]()
+
+    async def notify(self, kind: Kind, content: str) -> None:
+        """..."""
+
+        event = NotificationEvent(kind=kind, content=content)
+        await self.publish(event)
 
     async def create_document(self, key: str, title: str, tags: list[str], description: str, content: str) -> Document:
         """..."""
@@ -112,7 +120,7 @@ class Controller:
         self,
         message_id: str,
         parent_id: str | None,
-        kind: FragmentKind,
+        kind: Kind,
         content: str,
     ) -> Fragment:
         """..."""
@@ -137,16 +145,29 @@ class Controller:
 
         return fragment
 
+    async def reply_to(self, message_id: str) -> Message:
+        """..."""
+
+        user_message = self.messages[message_id]
+
+        agent_message = await self.create_message(user_message.conversation_id, "Agent")
+
+        context = Context(self, agent_message.id)
+        await self.agent.reply_to(context)
+
     async def execute(self, role: Role, command: ClientCommand) -> None:
         """..."""
 
+        # TODO should enter lock, to ensure sequential execution
         match command:
             case ConversationCreateCommand(title=title):
                 _ = await self.create_conversation(title)
             case MessageCreateCommand(conversation_id=conversation_id, content=content):
                 user_name = role.user_id  # TODO get actual user name
                 message = await self.create_message(conversation_id, user_name)
-                _ = await self.create_fragment(message.id, None, FragmentKind.TEXT, content)
+                _ = await self.create_fragment(message.id, None, Kind.NORMAL, content)
+                # TODO agent reply should be handled in a more flexible location
+                _ = await self.reply_to(message.id)
             case _:
                 raise ValueError
 

@@ -21,7 +21,11 @@ class Role(BaseModel):
 
 
 class Controller:
-    """..."""
+    """Main controller.
+
+    This is the entry point of external connectors.
+
+    """
 
     def __init__(self, storage: Storage, agent: Agent) -> None:
         self.storage = storage

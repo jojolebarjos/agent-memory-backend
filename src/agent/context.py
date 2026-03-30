@@ -5,7 +5,11 @@ from agent.storage import Storage
 
 
 class Context:
-    """..."""
+    """Conversation context.
+
+    This is the main entry-point to the current state for the agent.
+
+    """
 
     def __init__(self, storage: Storage, message_id: str, fragment_id: str | None = None) -> None:
         self.storage = storage

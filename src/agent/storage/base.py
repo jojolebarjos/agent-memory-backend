@@ -5,7 +5,12 @@ from agent.protocol import Conversation, Document, Fragment, Kind, Message, Serv
 
 
 class Storage(ABC):
-    """..."""
+    """Persistent storage.
+
+    This acts as a storage controller, providing high-level access to the various
+    primitives. This also includes the publisher-subscriber system.
+
+    """
 
     @abstractmethod
     async def get_document(self, id: str) -> Document:

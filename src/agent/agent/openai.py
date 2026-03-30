@@ -8,7 +8,7 @@ from .base import Agent
 
 
 class OpenAIAgent(Agent):
-    """..."""
+    """OpenAI-compatible agent."""
 
     def __init__(self, client: AsyncOpenAI, model: str) -> None:
         self.client = client

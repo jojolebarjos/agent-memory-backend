@@ -22,7 +22,12 @@ from .base import Storage
 
 
 class InMemoryStorage(Storage):
-    """..."""
+    """In-memory storage.
+
+    Everything is stored in the current process. As such, only a single instance can be
+    used, and state is lost at shut-down.
+
+    """
 
     def __init__(self) -> None:
         # TODO these objects should be per-workspace

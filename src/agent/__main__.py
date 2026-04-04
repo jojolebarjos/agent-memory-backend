@@ -39,16 +39,18 @@ def main(host: str, port: int, verbose: bool) -> None:
     """Run WebSocket server."""
 
     load_dotenv()
-    asyncio.run(run(host, port))
 
-
-async def run(host: str, port: int) -> None:
     executor = ThreadPoolExecutor()
     embedder = Qwen3Embedder(executor)
     storage = InMemoryStorage(embedder)
     client = AsyncOpenAI()
     agent = OpenAIAgent(client, model="gpt-4.1-nano")
     controller = Controller(storage, agent)
+
+    asyncio.run(run(controller, host, port))
+
+
+async def run(controller: Controller, host: str, port: int) -> None:
     async with serve(partial(handle, controller=controller), host, port) as _:
         await asyncio.Future()
 

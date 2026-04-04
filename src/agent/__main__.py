@@ -1,16 +1,12 @@
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from typing import Never
 
 import click
 from dotenv import load_dotenv
-from openai import AsyncOpenAI
 from websockets import ConnectionClosedOK, ServerConnection, serve
 
-from agent.agent.openai import OpenAIAgent
 from agent.controller import Controller, Role
-from agent.embedder.qwen3 import Qwen3Embedder
 from agent.protocol import client_command_adapter
 from agent.storage.in_memory import InMemoryStorage
 
@@ -40,17 +36,29 @@ def main(host: str, port: int, verbose: bool) -> None:
 
     load_dotenv()
 
-    executor = ThreadPoolExecutor()
-    embedder = Qwen3Embedder(executor)
-    storage = InMemoryStorage(embedder)
-    client = AsyncOpenAI()
-    agent = OpenAIAgent(client, model="gpt-4.1-nano")
-    controller = Controller(storage, agent)
+    storage = InMemoryStorage()
+    controller = Controller(storage)
 
     asyncio.run(run(controller, host, port))
 
 
 async def run(controller: Controller, host: str, port: int) -> None:
+
+    await controller.storage.create_document(
+        "unicorn",
+        "Unicorn",
+        ["fauna", "sentient", "fantasy"],
+        "Encyclopedic description of unicorns",
+        "The unicorn is a legendary creature that has been described since antiquity as a beast with a single large, pointed, spiraling horn projecting from its forehead.\n\nIn European literature and art, the unicorn has, for the last thousand years or so, been depicted as a white horse- or goat-like animal with a long, straight horn with spiraling grooves, cloven hooves, and sometimes a goat's beard. In the Middle Ages and Renaissance, it was commonly described as an extremely wild woodland creature, a symbol of purity and grace, which could be captured only by a virgin. In encyclopedias, its horn was described as having the power to render poisoned water potable and to heal sickness. In medieval and Renaissance times, the tusk of the $narwhal was sometimes sold as a unicorn horn.",
+    )
+    await controller.storage.create_document(
+        "narwhal",
+        "Narwhal",
+        ["fauna"],
+        "Encyclopedic description of narwhals",
+        "The narwhal (Monodon monoceros) is a species of toothed whale native to the Arctic. It is the only member of the genus Monodon and one of two living representatives of the family Monodontidae. The narwhal is a stocky cetacean with a relatively blunt snout, a large melon, and a shallow ridge in place of a dorsal fin. Males of this species have a spiralled tusk that is 1.5–3.0 m (4.9–9.8 ft) long, which is a protruding left canine thought to function as a weapon, a tool for feeding, in attracting mates or sensing water salinity. Specially adapted slow-twitch muscles, along with the jointed neck vertebrae and shallow dorsal ridge allow for easy movement through the Arctic environment, where the narwhal spends extended periods at great depths. The narwhal's geographic range overlaps with that of the similarly built and closely related beluga whale, and the animals are known to interbreed.",
+    )
+
     async with serve(partial(handle, controller=controller), host, port) as _:
         await asyncio.Future()
 

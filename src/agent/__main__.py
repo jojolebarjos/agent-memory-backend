@@ -1,4 +1,5 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from functools import partial
 from typing import Never
 
@@ -9,6 +10,7 @@ from websockets import ConnectionClosedOK, ServerConnection, serve
 
 from agent.agent.openai import OpenAIAgent
 from agent.controller import Controller, Role
+from agent.embedder.qwen3 import Qwen3Embedder
 from agent.protocol import client_command_adapter
 from agent.storage.in_memory import InMemoryStorage
 
@@ -41,7 +43,9 @@ def main(host: str, port: int, verbose: bool) -> None:
 
 
 async def run(host: str, port: int) -> None:
-    storage = InMemoryStorage()
+    executor = ThreadPoolExecutor()
+    embedder = Qwen3Embedder(executor)
+    storage = InMemoryStorage(embedder)
     client = AsyncOpenAI()
     agent = OpenAIAgent(client, model="gpt-4.1-nano")
     controller = Controller(storage, agent)

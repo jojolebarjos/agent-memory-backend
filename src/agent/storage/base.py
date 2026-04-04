@@ -33,6 +33,10 @@ class Storage(ABC):
         pass
 
     @abstractmethod
+    async def query_documents(self, query: str, k: int) -> list[Document]:
+        pass
+
+    @abstractmethod
     async def notify(self, kind: Kind, content: str) -> None:
         pass
 

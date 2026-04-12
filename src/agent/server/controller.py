@@ -2,15 +2,15 @@ from collections.abc import AsyncIterator
 
 from pydantic import BaseModel
 
-from agent.storage import Storage
-
-from .protocol import (
+from agent.protocol import (
     ClientCommand,
     ConversationCreateCommand,
     Kind,
     MessageCreateCommand,
     ServerEvent,
 )
+
+from .storage import Storage
 
 
 class Role(BaseModel):

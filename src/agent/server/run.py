@@ -4,8 +4,9 @@ from typing import Never
 
 from websockets import ConnectionClosedOK, ServerConnection, serve
 
-from agent.controller import Controller, Role
 from agent.protocol import client_command_adapter
+
+from .controller import Controller, Role
 
 
 async def run(controller: Controller, host: str, port: int) -> None:

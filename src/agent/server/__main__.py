@@ -3,9 +3,9 @@ import asyncio
 import click
 from dotenv import load_dotenv
 
-from agent.controller import Controller
-from agent.server import run
-from agent.storage.in_memory import InMemoryStorage
+from .controller import Controller
+from .run import run
+from .storage.in_memory import InMemoryStorage
 
 
 @click.command()
@@ -33,6 +33,7 @@ def main(host: str, port: int, verbose: bool) -> None:
 
     load_dotenv()
 
+    # TODO add argument to pick other storages
     storage = InMemoryStorage()
     controller = Controller(storage)
 

@@ -2,9 +2,6 @@ import asyncio
 from collections.abc import AsyncIterator
 from typing import override
 
-import numpy as np
-
-from agent.embedder import Embedder
 from agent.protocol import (
     Conversation,
     ConversationCreatedEvent,
@@ -32,13 +29,11 @@ class InMemoryStorage(Storage):
 
     """
 
-    def __init__(self, embedder: Embedder) -> None:
-        self.embedder = embedder
+    def __init__(self) -> None:
         # TODO these objects should be per-workspace
         self.events = list[ServerEvent]()
         self.documents = dict[str, Document]()
         self.document_by_key = dict[str, dict[int, Document]]()
-        self.document_embeddings = dict[str, np.ndarray]()
         self.conversations = dict[str, Conversation]()
         self.messages = dict[str, Message]()
         self.fragments = dict[str, Fragment]()
@@ -66,28 +61,12 @@ class InMemoryStorage(Storage):
         return self.fragments[id]
 
     @override
-    async def query_documents(self, query: str, k: int) -> list[Document]:
-        query_embedding = await self.embedder.embed_query(query)
-        documents = list(self.documents.values())
-        document_embeddings = np.array([self.document_embeddings[document.id] for document in documents])
-        similarities = document_embeddings @ query_embedding
-        assert similarities.shape == (len(documents),)
-        indices = np.argsort(similarities)[::-1]
-        selected_documents = []
-        for index in indices[:k]:
-            selected_documents.append(documents[index])
-        return selected_documents
-
-    @override
     async def notify(self, kind: Kind, content: str) -> None:
         event = NotificationEvent(kind=kind, content=content)
         await self.publish(event)
 
     @override
     async def create_document(self, key: str, title: str, tags: list[str], description: str, content: str) -> Document:
-        # TODO should we also include other metadata?
-        embedding = await self.embedder.embed_document(content)
-
         if key not in self.document_by_key:
             self.document_by_key[key] = {}
             version = 1
@@ -108,7 +87,6 @@ class InMemoryStorage(Storage):
         assert document.id not in self.documents
         self.documents[document.id] = document
         self.document_by_key[key][version] = document
-        self.document_embeddings[document.id] = embedding
 
         event = DocumentCreatedEvent(document=document)
         await self.publish(event)

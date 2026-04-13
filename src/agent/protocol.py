@@ -11,6 +11,8 @@ class Kind(StrEnum):
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
+    PENDING = "pending"
+    END = "end"
 
 
 class _Base(BaseModel):

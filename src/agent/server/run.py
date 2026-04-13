@@ -4,7 +4,7 @@ from typing import Never
 
 from websockets import ConnectionClosedOK, ServerConnection, serve
 
-from agent.protocol import client_command_adapter
+from agent.protocol import client_request_adapter
 
 from .controller import Controller, Role
 
@@ -49,8 +49,10 @@ async def handle(connection: ServerConnection, controller: Controller) -> None:
 async def incoming_loop(connection: ServerConnection, controller: Controller, role: Role) -> Never:
     while True:
         payload = await connection.recv()
-        command = client_command_adapter.validate_json(payload)
-        await controller.execute(role, command)
+        request = client_request_adapter.validate_json(payload)
+        response = await controller.execute(role, request)
+        payload = response.model_dump_json()
+        await connection.send(payload)
 
 
 async def outgoing_loop(connection: ServerConnection, controller: Controller, role: Role) -> Never:

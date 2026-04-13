@@ -3,11 +3,17 @@ from collections.abc import AsyncIterator
 from pydantic import BaseModel
 
 from agent.protocol import (
-    ClientCommand,
-    ConversationCreateCommand,
-    Kind,
-    MessageCreateCommand,
+    ClientRequest,
+    ConversationCreateRequest,
+    ConversationCreateResponse,
+    DocumentCreateRequest,
+    DocumentCreateResponse,
+    FragmentCreateRequest,
+    FragmentCreateResponse,
+    MessageCreateRequest,
+    MessageCreateResponse,
     ServerEvent,
+    ServerResponse,
 )
 
 from .storage import Storage
@@ -27,16 +33,23 @@ class Controller:
     def __init__(self, storage: Storage) -> None:
         self.storage = storage
 
-    async def execute(self, role: Role, command: ClientCommand) -> None:
+    async def execute(self, role: Role, request: ClientRequest) -> ServerResponse:
         # TODO check role
         # TODO should enter lock, to ensure sequential execution
-        match command:
-            case ConversationCreateCommand(title=title):
-                _ = await self.storage.create_conversation(title)
-            case MessageCreateCommand(conversation_id=conversation_id, content=content):
+        match request:
+            case DocumentCreateRequest(key=key, title=title, tags=tags, description=description, content=content):
+                document = await self.storage.create_document(key, title, tags, description, content)
+                return DocumentCreateResponse(request_id=request.request_id, document=document)
+            case ConversationCreateRequest(title=title):
+                conversation = await self.storage.create_conversation(title)
+                return ConversationCreateResponse(request_id=request.request_id, conversation=conversation)
+            case MessageCreateRequest(conversation_id=conversation_id):
                 user_name = role.user_id  # TODO get actual user name
                 message = await self.storage.create_message(conversation_id, user_name)
-                _ = await self.storage.create_fragment(message.id, None, Kind.NORMAL, content)
+                return MessageCreateResponse(request_id=request.request_id, message=message)
+            case FragmentCreateRequest(message_id=message_id, parent_id=parent_id, kind=kind, content=content):
+                fragment = await self.storage.create_fragment(message_id, parent_id, kind, content)
+                return FragmentCreateResponse(request_id=request.request_id, fragment=fragment)
             case _:
                 raise ValueError
 

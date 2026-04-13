@@ -98,20 +98,71 @@ ServerEvent = Annotated[
 ]
 
 
-class ConversationCreateCommand(_Base):
-    type: Literal["conversation.create"] = "conversation.create"
-    title: str
+class DocumentCreateResponse(_Base):
+    type: Literal["document.create.response"] = "document.create.response"
+    request_id: str
+    document: Document
 
 
-class MessageCreateCommand(_Base):
-    type: Literal["message.create"] = "message.create"
-    conversation_id: str
-    content: str
+class ConversationCreateResponse(_Base):
+    type: Literal["conversation.create.response"] = "conversation.create.response"
+    request_id: str
+    conversation: Conversation
 
 
-ClientCommand = Annotated[
-    ConversationCreateCommand | MessageCreateCommand,
+class MessageCreateResponse(_Base):
+    type: Literal["message.create.response"] = "message.create.response"
+    request_id: str
+    message: Message
+
+
+class FragmentCreateResponse(_Base):
+    type: Literal["fragment.create.response"] = "fragment.create.response"
+    request_id: str
+    fragment: Fragment
+
+
+ServerResponse = Annotated[
+    DocumentCreateResponse | ConversationCreateResponse | MessageCreateResponse | FragmentCreateResponse,
     Field(discriminator="type"),
 ]
 
-client_command_adapter = TypeAdapter[ClientCommand](ClientCommand)
+
+class DocumentCreateRequest(_Base):
+    type: Literal["document.create"] = "document.create"
+    request_id: str
+    key: str
+    title: str
+    tags: list[str]
+    description: str
+    content: str
+
+
+class ConversationCreateRequest(_Base):
+    type: Literal["conversation.create"] = "conversation.create"
+    request_id: str
+    title: str
+
+
+class MessageCreateRequest(_Base):
+    type: Literal["message.create"] = "message.create"
+    request_id: str
+    conversation_id: str
+
+
+class FragmentCreateRequest(_Base):
+    type: Literal["fragment.create"] = "fragment.create"
+    request_id: str
+    message_id: str
+    parent_id: str | None = None
+    kind: Kind
+    content: str
+
+
+ClientRequest = Annotated[
+    ConversationCreateRequest | MessageCreateRequest | FragmentCreateRequest | DocumentCreateRequest,
+    Field(discriminator="type"),
+]
+
+client_request_adapter = TypeAdapter[ClientRequest](ClientRequest)
+server_event_adapter = TypeAdapter[ServerEvent](ServerEvent)

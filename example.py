@@ -3,7 +3,7 @@ import asyncio
 from openai import AsyncClient
 from openai.types.chat import ChatCompletionMessageParam
 
-from agent.client import Agent, Context, Watcher
+from agent.client import Agent, Context, Controller
 from agent.protocol import Kind
 
 
@@ -52,8 +52,8 @@ async def main():
     user_name = "agent"
     # TODO once token system is properly in place, use this instead of the user name
     token = user_name
-    watcher = Watcher("ws://localhost:8080/", user_name, token, agent)
-    await watcher.run()
+    controller = Controller("ws://localhost:8080/", user_name, token, agent)
+    await controller.run()
 
 
 asyncio.run(main())

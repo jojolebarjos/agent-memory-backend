@@ -20,7 +20,7 @@ from .context import Context
 from .workspace import Workspace
 
 
-class Watcher:
+class Controller:
     def __init__(self, uri: str, user_name: str, token: str, agent: Agent) -> None:
         self.uri = uri
         self.user_name = user_name

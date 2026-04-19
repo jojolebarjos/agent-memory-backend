@@ -1,6 +1,9 @@
 from agent.protocol import Conversation, Document, Fragment, Message
 
 
+# TODO improve this local storage!
+
+
 class Workspace:
     """..."""
 
@@ -9,3 +12,5 @@ class Workspace:
         self.conversations = dict[str, Conversation]()
         self.messages = dict[str, Message]()
         self.fragments = dict[str, Fragment]()
+
+    # TODO provide helpers

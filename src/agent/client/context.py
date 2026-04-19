@@ -1,4 +1,12 @@
-from agent.protocol import Fragment, FragmentCreateRequest, FragmentCreateResponse, Kind
+from agent.protocol import (
+    Document,
+    DocumentCreateRequest,
+    DocumentCreateResponse,
+    Fragment,
+    FragmentCreateRequest,
+    FragmentCreateResponse,
+    Kind,
+)
 from agent.utility import make_id
 
 from .client import Client
@@ -25,6 +33,15 @@ class Context:
         assert isinstance(response, FragmentCreateResponse)
         return response.fragment
 
-    # TODO create document
-
-    # TODO notify
+    async def create_document(self, key: str, title: str, tags: list[str], description: str, content: str) -> Document:
+        request = DocumentCreateRequest(
+            request_id=make_id(),
+            key=key,
+            title=title,
+            tags=tags,
+            description=description,
+            content=content,
+        )
+        response = await self.client.send(request)
+        assert isinstance(response, DocumentCreateResponse)
+        return response.document

@@ -49,8 +49,10 @@ class MyAgent(Agent):
 
 async def main():
     agent = MyAgent()
-    token = "agent"
-    watcher = Watcher("ws://localhost:8080/", token, agent)
+    # TODO once token system is properly in place, use this instead
+    user_name = "agent"
+    token = user_name
+    watcher = Watcher("ws://localhost:8080/", user_name, token, agent)
     await watcher.run()
 
 

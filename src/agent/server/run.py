@@ -31,13 +31,7 @@ async def run(controller: Controller, host: str, port: int) -> None:
 
 
 async def handle(connection: ServerConnection, controller: Controller) -> None:
-    authorization = connection.request.headers.get("Authorization")
-    if authorization is not None:
-        # TODO check JWT
-        raise NotImplementedError
-    else:
-        user_id = "guest"
-    role = Role(user_id=user_id)
+    role = await authorize(connection)
     try:
         async with asyncio.TaskGroup() as group:
             group.create_task(incoming_loop(connection, controller, role))
@@ -60,3 +54,15 @@ async def outgoing_loop(connection: ServerConnection, controller: Controller, ro
         payload = event.model_dump_json()
         await connection.send(payload)
     raise RuntimeError("Event stream closed")
+
+
+async def authorize(connection: ServerConnection) -> Role:
+    authorization = connection.request.headers.get("Authorization")
+    if not authorization:
+        return Role(user_id="guest")
+    type, _, credentials = authorization.partition(" ")
+    if type == "Bearer":
+        # TODO actually implement token system
+        user_id = credentials
+        return Role(user_id=user_id)
+    raise ValueError(f'Unknown authorization type "{type}"')

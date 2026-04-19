@@ -1,4 +1,5 @@
 # Python cache
+/build/
 *.pyc
 .ipynb_checkpoints/
 *.egg-info/

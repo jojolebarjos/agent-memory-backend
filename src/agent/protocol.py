@@ -129,6 +129,10 @@ ServerResponse = Annotated[
     Field(discriminator="type"),
 ]
 
+ServerPayload = ServerEvent | ServerResponse
+
+server_payload_adapter = TypeAdapter[ServerPayload](ServerPayload)
+
 
 class DocumentCreateRequest(_Base):
     type: Literal["document.create"] = "document.create"
@@ -167,4 +171,3 @@ ClientRequest = Annotated[
 ]
 
 client_request_adapter = TypeAdapter[ClientRequest](ClientRequest)
-server_event_adapter = TypeAdapter[ServerEvent](ServerEvent)

@@ -21,12 +21,12 @@ from .storage import Storage
 
 
 class Controller:
-    def __init__(self, uri: str, user_name: str, token: str, agent: Agent) -> None:
+    def __init__(self, uri: str, user_name: str, token: str, storage: Storage, agent: Agent) -> None:
         self.uri = uri
         self.user_name = user_name
         self.token = token
+        self.storage = storage
         self.agent = agent
-        self.storage = Storage()
         # TODO specify `since`, according to what we have on the disk
         self.client = Client(self.uri, self.token)
         self.conversation_callers = dict[str, DelayedCall]()

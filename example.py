@@ -3,7 +3,7 @@ import asyncio
 from openai import AsyncClient
 from openai.types.chat import ChatCompletionMessageParam
 
-from agent.client import Agent, Context, Controller
+from agent.client import Agent, Context, Controller, InMemoryStorage
 from agent.protocol import Fragment, Kind, Message
 
 
@@ -54,7 +54,8 @@ async def main():
     user_name = "agent"
     # TODO once token system is properly in place, use this instead of the user name
     token = user_name
-    controller = Controller("ws://localhost:8080/", user_name, token, agent)
+    storage = InMemoryStorage()
+    controller = Controller("ws://localhost:8080/", user_name, token, storage, agent)
     await controller.run()
 
 

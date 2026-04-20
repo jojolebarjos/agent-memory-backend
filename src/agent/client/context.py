@@ -31,6 +31,7 @@ class Context:
             content=content,
         )
         response = await self.client.send(request)
+        # TODO maybe add directly to storage
         assert isinstance(response, FragmentCreateResponse)
         return response.fragment
 
@@ -44,5 +45,6 @@ class Context:
             content=content,
         )
         response = await self.client.send(request)
+        # TODO maybe add directly to storage
         assert isinstance(response, DocumentCreateResponse)
         return response.document

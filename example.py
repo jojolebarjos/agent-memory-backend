@@ -14,6 +14,7 @@ def build_chat_completion_messages(
 ) -> list[ChatCompletionMessageParam]:
     user_name = current_message.user_name
     chat_messages = []
+    # TODO should probably sort messages and fragments by timestamp
     for message in messages:
         if message.user_name == user_name:
             role = "assistant"

@@ -38,23 +38,23 @@ class Controller:
                 match event:
                     # TODO should maybe use WorkspaceSyncEvent to explicitly ignore initial messages?
                     case DocumentCreatedEvent(document=document):
-                        self.storage.documents[document.id] = document
+                        await self.storage.add_document(document)
                     case ConversationCreatedEvent(conversation=conversation):
-                        assert conversation.id not in self.storage.conversations
-                        self.storage.conversations[conversation.id] = conversation
-                        self.conversation_callers[conversation.id] = DelayedCall(0.5)
+                        await self.storage.add_conversation(conversation)
+                        if conversation.id not in self.conversation_callers:
+                            self.conversation_callers[conversation.id] = DelayedCall(0.5)
                     case MessageCreatedEvent(message=message):
-                        self.storage.messages[message.id] = message
+                        await self.storage.add_message(message)
                     case FragmentCreatedEvent(fragment=fragment):
-                        self.storage.fragments[fragment.id] = fragment
+                        await self.storage.add_fragment(fragment)
                         if fragment.kind == Kind.END:
                             # Note: do not wait, on purpose
-                            message = self.storage.messages[fragment.message_id]
+                            message = await self.storage.get_message(fragment.message_id)
                             caller = self.conversation_callers[message.conversation_id]
                             loop.create_task(caller(self._reply_to(message.id)))
 
     async def _reply_to(self, previous_message_id: str) -> Message:
-        previous_message = self.storage.messages[previous_message_id]
+        previous_message = await self.storage.get_message(previous_message_id)
 
         # Don't reply to our own messages
         if previous_message.user_name == self.user_name:
@@ -70,10 +70,10 @@ class Controller:
         message = response.message
 
         # TODO hack, need the message already
-        self.storage.messages[message.id] = message
+        await self.storage.add_message(message)
 
         # Ask agent to reply
-        context = Context(self.client, self.storage, message.id)
+        context = Context(self.client, self.storage, message)
         start_time = time.perf_counter()
         # TODO catch exceptions
         await self.agent.reply_to(context)

@@ -6,6 +6,7 @@ from agent.protocol import (
     FragmentCreateRequest,
     FragmentCreateResponse,
     Kind,
+    Message,
 )
 from agent.utility import make_id
 
@@ -16,15 +17,15 @@ from .storage import Storage
 class Context:
     """..."""
 
-    def __init__(self, client: Client, storage: Storage, message_id: str) -> None:
+    def __init__(self, client: Client, storage: Storage, message: Message) -> None:
         self.client = client
         self.storage = storage
-        self.message_id = message_id
+        self.message = message
 
     async def create_fragment(self, kind: Kind, content: str, parent_id: str | None = None) -> Fragment:
         request = FragmentCreateRequest(
             request_id=make_id(),
-            message_id=self.message_id,
+            message_id=self.message.id,
             parent_id=parent_id,
             kind=kind,
             content=content,

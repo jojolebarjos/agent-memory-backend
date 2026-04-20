@@ -4,30 +4,31 @@ from openai import AsyncClient
 from openai.types.chat import ChatCompletionMessageParam
 
 from agent.client import Agent, Context, Controller
-from agent.protocol import Kind
+from agent.protocol import Fragment, Kind, Message
 
 
-def build_chat_completion_messages(context: Context) -> list[ChatCompletionMessageParam]:
-    current_message = context.storage.messages[context.message_id]
+def build_chat_completion_messages(
+    current_message: Message,
+    messages: list[Message],
+    fragments: list[Fragment],
+) -> list[ChatCompletionMessageParam]:
     user_name = current_message.user_name
-    conversation_id = current_message.conversation_id
     chat_messages = []
-    for message in context.storage.messages.values():
-        if message.conversation_id == conversation_id:
-            if message.user_name == user_name:
-                role = "assistant"
-            else:
-                role = "user"
-            for fragment in context.storage.fragments.values():
-                if fragment.message_id == message.id:
-                    if fragment.kind == Kind.NORMAL:
-                        chat_message = {
-                            "role": role,
-                            # TODO add "name"?
-                            "content": fragment.content,
-                        }
-                        chat_messages.append(chat_message)
-                    # TODO handle other fragment kinds
+    for message in messages:
+        if message.user_name == user_name:
+            role = "assistant"
+        else:
+            role = "user"
+        for fragment in fragments:
+            if fragment.message_id == message.id:
+                if fragment.kind == Kind.NORMAL:
+                    chat_message = {
+                        "role": role,
+                        # TODO add "name"?
+                        "content": fragment.content,
+                    }
+                    chat_messages.append(chat_message)
+                # TODO handle other fragment kinds
     return chat_messages
 
 
@@ -36,7 +37,8 @@ class MyAgent(Agent):
         self.client = AsyncClient()
 
     async def reply_to(self, context: Context) -> None:
-        chat_completion_messages = build_chat_completion_messages(context)
+        _, messages, fragments = await context.storage.get_conversation_data(context.message.conversation_id)
+        chat_completion_messages = build_chat_completion_messages(context.message, messages, fragments)
         chat_completion = await self.client.chat.completions.create(
             model="gpt-4.1-nano",
             messages=chat_completion_messages,

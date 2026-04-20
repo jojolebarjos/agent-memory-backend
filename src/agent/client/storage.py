@@ -4,7 +4,7 @@ from agent.protocol import Conversation, Document, Fragment, Message
 # TODO improve this local storage!
 
 
-class Workspace:
+class Storage:
     """..."""
 
     def __init__(self) -> None:

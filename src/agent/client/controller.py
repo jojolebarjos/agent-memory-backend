@@ -17,7 +17,7 @@ from agent.utility import make_id
 from .agent import Agent
 from .client import Client
 from .context import Context
-from .workspace import Workspace
+from .storage import Storage
 
 
 class Controller:
@@ -26,7 +26,7 @@ class Controller:
         self.user_name = user_name
         self.token = token
         self.agent = agent
-        self.workspace = Workspace()
+        self.storage = Storage()
         # TODO specify `since`, according to what we have on the disk
         self.client = Client(self.uri, self.token)
         self.conversation_callers = dict[str, DelayedCall]()
@@ -38,23 +38,23 @@ class Controller:
                 match event:
                     # TODO should maybe use WorkspaceSyncEvent to explicitly ignore initial messages?
                     case DocumentCreatedEvent(document=document):
-                        self.workspace.documents[document.id] = document
+                        self.storage.documents[document.id] = document
                     case ConversationCreatedEvent(conversation=conversation):
-                        assert conversation.id not in self.workspace.conversations
-                        self.workspace.conversations[conversation.id] = conversation
+                        assert conversation.id not in self.storage.conversations
+                        self.storage.conversations[conversation.id] = conversation
                         self.conversation_callers[conversation.id] = DelayedCall(0.5)
                     case MessageCreatedEvent(message=message):
-                        self.workspace.messages[message.id] = message
+                        self.storage.messages[message.id] = message
                     case FragmentCreatedEvent(fragment=fragment):
-                        self.workspace.fragments[fragment.id] = fragment
+                        self.storage.fragments[fragment.id] = fragment
                         if fragment.kind == Kind.END:
                             # Note: do not wait, on purpose
-                            message = self.workspace.messages[fragment.message_id]
+                            message = self.storage.messages[fragment.message_id]
                             caller = self.conversation_callers[message.conversation_id]
                             loop.create_task(caller(self._reply_to(message.id)))
 
     async def _reply_to(self, previous_message_id: str) -> Message:
-        previous_message = self.workspace.messages[previous_message_id]
+        previous_message = self.storage.messages[previous_message_id]
 
         # Don't reply to our own messages
         if previous_message.user_name == self.user_name:
@@ -70,10 +70,10 @@ class Controller:
         message = response.message
 
         # TODO hack, need the message already
-        self.workspace.messages[message.id] = message
+        self.storage.messages[message.id] = message
 
         # Ask agent to reply
-        context = Context(self.client, self.workspace, message.id)
+        context = Context(self.client, self.storage, message.id)
         start_time = time.perf_counter()
         # TODO catch exceptions
         await self.agent.reply_to(context)

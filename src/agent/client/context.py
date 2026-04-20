@@ -10,15 +10,15 @@ from agent.protocol import (
 from agent.utility import make_id
 
 from .client import Client
-from .workspace import Workspace
+from .storage import Storage
 
 
 class Context:
     """..."""
 
-    def __init__(self, client: Client, workspace: Workspace, message_id: str) -> None:
+    def __init__(self, client: Client, storage: Storage, message_id: str) -> None:
         self.client = client
-        self.workspace = workspace
+        self.storage = storage
         self.message_id = message_id
 
     async def create_fragment(self, kind: Kind, content: str, parent_id: str | None = None) -> Fragment:

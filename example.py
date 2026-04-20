@@ -8,17 +8,17 @@ from agent.protocol import Kind
 
 
 def build_chat_completion_messages(context: Context) -> list[ChatCompletionMessageParam]:
-    current_message = context.workspace.messages[context.message_id]
+    current_message = context.storage.messages[context.message_id]
     user_name = current_message.user_name
     conversation_id = current_message.conversation_id
     chat_messages = []
-    for message in context.workspace.messages.values():
+    for message in context.storage.messages.values():
         if message.conversation_id == conversation_id:
             if message.user_name == user_name:
                 role = "assistant"
             else:
                 role = "user"
-            for fragment in context.workspace.fragments.values():
+            for fragment in context.storage.fragments.values():
                 if fragment.message_id == message.id:
                     if fragment.kind == Kind.NORMAL:
                         chat_message = {
